@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ways to Pass Between Spaces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;800&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+
+/* Layout: a printed booklet lying open on a desk; pages fold from wherever you grab them */
+:root{
+  --desk:#dde0e3; --desk-ink:#22262a; --desk-soft:#5a6168;
+  --paper:#ffffff; --ink:#111214; --rule:#111214; --shadow:rgba(20,24,28,.22); --flapshadow:rgba(20,24,28,.35);
+  --ui:#ffffff; --ui-line:#22262a;
+  --font:'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--desk:#15171a;--desk-ink:#e7e9ec;--desk-soft:#9aa1a8;--shadow:rgba(0,0,0,.55);--flapshadow:rgba(0,0,0,.6);--ui:#202327;--ui-line:#c9ced3;color-scheme:dark}}
+:root[data-theme="dark"]{--desk:#15171a;--desk-ink:#e7e9ec;--desk-soft:#9aa1a8;--shadow:rgba(0,0,0,.55);--flapshadow:rgba(0,0,0,.6);--ui:#202327;--ui-line:#c9ced3;color-scheme:dark}
+html,body{height:100%}
+body{background:var(--desk);color:var(--desk-ink);font-family:var(--font);display:flex;flex-direction:column;gap:10px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px;box-sizing:border-box;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.top h1{margin:0;font-size:13px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase}
+.top span{font-size:13px;color:var(--desk-soft)}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.book{position:relative;transition:transform .45s cubic-bezier(.3,.7,.2,1)}
+.book.nomove{transition:none}
+.page{position:absolute;top:0;left:0;transform-origin:0 0;width:var(--pw);height:var(--ph);background:var(--paper);overflow:hidden;display:none;cursor:grab}
+.page.on{display:block}
+.bshadow{position:absolute;top:0;height:var(--ph);left:0;width:0;box-shadow:0 10px 30px var(--shadow);pointer-events:none;z-index:0;transition:left .45s cubic-bezier(.3,.7,.2,1),width .45s cubic-bezier(.3,.7,.2,1),opacity .3s}
+.gutter{transition:opacity .3s}
+.gutter{position:absolute;top:0;height:var(--ph);left:calc(var(--pw) - 12px);width:24px;pointer-events:none;z-index:10;opacity:0;background:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.04) 50%,rgba(0,0,0,0) 100%)}
+.gutter::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:1px;transform:translateX(-50%);background:rgba(0,0,0,.14)}
+.gutter.on{opacity:1}
+.flapwrap{position:absolute;inset:0;pointer-events:none;filter:drop-shadow(0 0 10px var(--flapshadow));z-index:20}
+.flapwrap .page{pointer-events:none}
+.sheet{position:absolute;top:0;left:0;width:528px;height:816px;transform:scale(var(--k));transform-origin:0 0;color:var(--ink)}
+.pg{box-sizing:border-box;width:528px;height:816px;padding:48px 44px;display:flex;flex-direction:column}
+.pg h1,.pg h2{margin:0;text-wrap:balance}
+.pg p{margin:0;font-size:15px;line-height:1.5;text-wrap:pretty;hyphens:none}
+.cover{justify-content:space-between}
+.cover h1{font-size:56px;font-weight:800;line-height:1;letter-spacing:.5px}
+.cover .keep{margin-top:18px;font-size:16px;font-weight:500;line-height:1.45;text-wrap:balance}
+.parts{display:flex;align-items:center;gap:16px;border:2px solid var(--rule);border-radius:10px;padding:14px 18px;align-self:flex-start}
+.parts svg{width:64px;height:82px;fill:var(--ink)}
+.parts b{display:block;font-size:32px;line-height:1}.parts span{font-size:16px;font-weight:500}
+.method{gap:18px}
+.mh{display:flex;flex-direction:column;gap:10px;border-bottom:2.5px solid var(--rule);padding-bottom:14px}
+.mh h2{font-size:24px;font-weight:800;line-height:1.1;letter-spacing:.8px;text-transform:uppercase}
+.method img{width:100%;flex:1;min-height:0;object-fit:contain;pointer-events:none}
+.lost{align-items:center;justify-content:center;gap:22px;text-align:center}
+.lost svg{width:140px;height:140px;color:var(--ink)}.lost h2{font-size:26px;font-weight:800}.lost p{max-width:320px}
+.notes{gap:14px}
+.notelist{list-style:none;margin:0;padding:0 4px 0 0;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;touch-action:pan-y;cursor:auto}
+.notelist li{display:flex;flex-direction:column;gap:3px;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.notelist .who{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.notelist .txt{font-size:15px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.notelist .empty{border:0;font-size:15px;color:#555b61}
+.compose{display:flex;flex-direction:column;gap:8px;border-top:2.5px solid var(--rule);padding-top:12px}
+.compose label{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.compose[hidden]{display:none!important}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.compose button{font:700 13px/1 var(--font);letter-spacing:1px;text-transform:uppercase;color:var(--paper);background:var(--ink);border:0;border-radius:999px;min-height:40px;padding:0 18px;cursor:pointer}
+.compose button:disabled{opacity:.4;cursor:default}
+.compose button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.notes .mh{flex-direction:row;justify-content:space-between;align-items:baseline}
+.saved{font-size:12px;font-weight:500;color:#555b61}
+.notes textarea{width:100%;height:96px;box-sizing:border-box;border:0;resize:none;outline:none;background:transparent;color:var(--ink);cursor:text;user-select:text;-webkit-user-select:text;
+  font:16px/32px var(--font);padding:0 2px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px);background-attachment:local}
+.notes textarea:focus-visible{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--rule)}
+.notes textarea::placeholder{color:#767676}
+.back{align-items:center;justify-content:flex-end;gap:14px}
+.back svg{width:40px;height:52px;fill:var(--ink)}.back span{font-size:12px;font-weight:700;letter-spacing:1.5px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bar{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
+.bar button{font:700 13px/1 var(--font);letter-spacing:1.2px;text-transform:uppercase;color:var(--desk-ink);background:var(--ui);border:2px solid var(--ui-line);border-radius:999px;min-height:44px;padding:0 20px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.bar button:disabled{opacity:.35;cursor:default}
+.bar button:focus-visible{outline:3px solid var(--desk-ink);outline-offset:3px}
+.bar svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.where{min-width:110px;text-align:center;font-size:13px;font-weight:500;color:var(--desk-soft);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+
+<div class="stage" id="stage"><div class="book" id="book"><div class="page" data-p="1" aria-hidden="true"><div class="sheet"><div class="pg cover"><div><h1>WAYS TO PASS BETWEEN SPACES</h1><p class="keep">Keep these&nbsp;instructions. You may need them on the other&nbsp;side.</p></div>
+<div class="parts"><svg viewBox="6 1.5 12 21" aria-hidden="true"><path d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M10.5,7H13.5A2,2 0 0,1 15.5,9V14.5H14V22H10V14.5H8.5V9A2,2 0 0,1 10.5,7Z"/></svg><div><b>1×</b><span>No tools needed</span></div></div></div></div></div><div class="page" data-p="2" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Use electronic devices</h2></div>
+<img src="img/01.png" alt="A pictogram figure diving head first into a TV screen" draggable="false"><p>Screens can open into the scenes they&nbsp;show. Step into the TV when it plays the right scene, but check that you can land at that&nbsp;height.</p></div></div></div><div class="page" data-p="3" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Look for holes in space</h2></div>
+<img src="img/02.png" alt="A figure stepping through a crack that has opened in space" draggable="false"><p>Spaces have natural seams between&nbsp;them. When one splits open in a wall, you can simply walk&nbsp;through.</p></div></div></div><div class="page" data-p="4" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Use transport facilities</h2></div>
+<img src="img/03.png" alt="A figure stepping out of a lift into outer space" draggable="false"><p>Everyday exits and vehicles can take you further than you&nbsp;think. Sometimes the lift doors open onto outer&nbsp;space.</p></div></div></div><div class="page" data-p="5" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Try different forms</h2></div>
+<img src="img/04.png" alt="A figure turning into water and draining down a sink" draggable="false"><p>A new form reveals paths that a body cannot&nbsp;use. Turn into water and you can leave through the&nbsp;sink.</p></div></div></div><div class="page" data-p="6" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Find the right angle</h2></div>
+<img src="img/05.png" alt="Painted fragments that form a door only from one viewpoint" draggable="false"><p>Some spaces are joined by optical&nbsp;illusions. The painted door only lines up from one spot, so find it before you&nbsp;walk.</p></div></div></div><div class="page" data-p="7" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Lie down, but don&#x27;t fall asleep</h2></div>
+<img src="img/06.png" alt="A bed with a sleeping figure sinking into a whirlpool" draggable="false"><p>The edge of sleep is a passage of its&nbsp;own. Stay half awake, and you may sink, bed and all, into somewhere&nbsp;else.</p></div></div></div><div class="page" data-p="8" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Check your blind spots</h2></div>
+<img src="img/07.png" alt="A figure looks ahead while a doorway appears behind it" draggable="false"><p>Space changes quietly wherever you are not&nbsp;looking. While you face forward, a new doorway may open just behind&nbsp;you.</p></div></div></div><div class="page" data-p="9" aria-hidden="true"><div class="sheet"><div class="pg method"><div class="mh"><h2>Ask someone with special abilities</h2></div>
+<img src="img/08.png" alt="A figure in a wizard hat opening a magic portal" draggable="false"><p>Some people can open passages that others&nbsp;cannot. Ask politely, and they may open a portal for&nbsp;you.</p></div></div></div><div class="page" data-p="10" aria-hidden="true"><div class="sheet"><div class="pg lost"><svg viewBox="0 0 84 84" role="img" aria-label="Question mark"><g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="42" cy="42" r="36"/><path d="M31 32 Q31 20 42 20 Q53 20 53 31 Q53 38 45 42 Q42 44 42 50"/><path d="M42 62 V62.5"/></g></svg>
+<h2>Lost between spaces?</h2><p>Stay where you&nbsp;are. Most passages open&nbsp;again. Do not try to walk back through a closed&nbsp;one.</p></div></div></div><div class="page" data-p="11" aria-hidden="true"><div class="sheet"><div class="pg notes"><div class="mh"><h2>Notes</h2><span class="saved" id="count"></span></div>
+<ol class="notelist" id="notelist" aria-label="Notes from readers"><li class="empty">No notes yet. Be the first to write where you went.</li></ol>
+<form class="compose" id="compose"><label for="notes">Your note</label><textarea id="notes" rows="3" maxlength="600" spellcheck="false" placeholder="Write down where you went, and how you got back."></textarea>
+<div class="crow"><span class="saved" id="saved" aria-live="polite"></span><button type="submit" id="post">Save note</button></div></form></div></div></div><div class="page" data-p="12" aria-hidden="true"><div class="sheet"><div class="pg back"><svg viewBox="6 1.5 12 21" aria-hidden="true"><path d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M10.5,7H13.5A2,2 0 0,1 15.5,9V14.5H14V22H10V14.5H8.5V9A2,2 0 0,1 10.5,7Z"/></svg><span>WAYS TO PASS BETWEEN SPACES</span></div></div></div><div class="bshadow" id="bshadow" aria-hidden="true"></div><div class="gutter" id="gutter" aria-hidden="true"></div><div class="flapwrap" id="flapwrap"></div></div></div>
+
+<script>
+(function(){
+  const gutter=document.getElementById('gutter'); const bshadow=document.getElementById('bshadow');
+  const N=6, book=document.getElementById('book'), stage=document.getElementById('stage'), flapwrap=document.getElementById('flapwrap');
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pg={}; book.querySelectorAll('.page').forEach(e=>pg[+e.dataset.p]=e);
+  let f=0, side='R', narrow=false, W=0, H=0, busy=false, drag=null;
+
+  /* ---------- geometry ---------- */
+  const M=(a,b,c,d,e,f)=>[a,b,c,d,e,f];
+  const mul=(A,B)=>[A[0]*B[0]+A[2]*B[1], A[1]*B[0]+A[3]*B[1], A[0]*B[2]+A[2]*B[3], A[1]*B[2]+A[3]*B[3], A[0]*B[4]+A[2]*B[5]+A[4], A[1]*B[4]+A[3]*B[5]+A[5]];
+  const ap=(A,p)=>[A[0]*p[0]+A[2]*p[1]+A[4], A[1]*p[0]+A[3]*p[1]+A[5]];
+  const css=A=>'matrix('+A.map(v=>+v.toFixed(5)).join(',')+')';
+  const poly=pts=>pts.length<3?'polygon(0 0,0 0,0 0)':'polygon('+pts.map(p=>p[0].toFixed(2)+'px '+p[1].toFixed(2)+'px').join(',')+')';
+  function clipHalf(pts,m,n,keepPos){ const out=[]; const s=p=>((p[0]-m[0])*n[0]+(p[1]-m[1])*n[1])*(keepPos?1:-1);
+    for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length], sa=s(a), sb=s(b);
+      if(sa>=0) out.push(a); if((sa>=0)!==(sb>=0)){ const t=sa/(sa-sb); out.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]); } }
+    return out; }
+  function constrain(G,P){ const S=[[0,0],[0,H]]; let p=P.slice();
+    for(let k=0;k<3;k++) for(const s of S){ const r=Math.hypot(G[0]-s[0],G[1]-s[1]), dx=p[0]-s[0], dy=p[1]-s[1], d=Math.hypot(dx,dy); if(d>r&&d>0){ p=[s[0]+dx*r/d, s[1]+dy*r/d]; } }
+    return p; }
+
+  /* ---------- layout ---------- */
+  function layout(){
+    const sw=stage.clientWidth, sh=stage.clientHeight;
+    narrow = sw < 640;
+    W=Math.max(140,Math.floor(Math.min(sh*0.96*528/816, narrow?sw*0.94:sw*0.94/2, 560)));
+    H=Math.round(W*816/528);
+    book.style.setProperty('--pw',W+'px'); book.style.setProperty('--ph',H+'px'); book.style.setProperty('--k',W/528);
+    book.style.width=(2*W)+'px'; book.style.height=H+'px';
+    render(null);
+  }
+  function offsetX(){ if(narrow) return side==='R'?-W/2:W/2; if(f===0) return -W/2; if(f===N) return W/2; return 0; }
+  function reset(e){ e.className='page'; e.style.transform=''; e.style.clipPath=''; e.style.zIndex=''; if(e.parentNode!==book) book.insertBefore(e,flapwrap); }
+  function show(n,x,z,cls){ const e=pg[n]; if(!e) return null; e.classList.add('on'); if(cls) e.classList.add(cls); e.style.transform='translateX('+x+'px)'; e.style.zIndex=z; return e; }
+  function render(fl){
+    for(const n in pg) reset(pg[n]);
+    book.style.transform='translateX('+offsetX()+'px)';
+    { let L=false, R=false;
+      if(!fl){ L=f>0; R=f<N; }
+      else if(fl.dir>0){ L=f>0; R=2*f+3<=12; }
+      else { R=f<N; L=2*f-2>=1; }
+      gutter.classList.toggle('on', !!fl || (f>0&&f<N));
+      bshadow.style.opacity=(L||R)?'1':'0'; bshadow.style.left=(L?0:W)+'px'; bshadow.style.width=((L&&R)?2*W:W)+'px'; }
+    if(!fl){
+      if(f>0) show(2*f,0,1,'static');
+      if(f<N) show(2*f+1,W,1,'static');
+    } else {
+      const fw=fl.dir>0; // forward = lifting the right page
+      const T=fw?2*f+1:2*f, B=fw?2*f+2:2*f-1, U=fw?2*f+3:2*f-2, other=fw?2*f:2*f+1;
+      const off=fw?W:0, Phi=fw?M(1,0,0,1,0,0):M(-1,0,0,1,W,0), Psi=fw?M(-1,0,0,1,W,0):M(1,0,0,1,0,0);
+      if(pg[other]&&((fw&&f>0)||(!fw&&f<N))) show(other,fw?0:W,1,'static');
+      if(U>=1&&U<=12) show(U,off,1,'static');
+      const G=fl.G, P=constrain(G,fl.P), dx=G[0]-P[0], dy=G[1]-P[1], L=Math.hypot(dx,dy);
+      const rect=[[0,0],[W,0],[W,H],[0,H]];
+      const t=pg[T]; t.classList.add('on','static'); t.style.zIndex=2;
+      if(L<0.5){ t.style.transform='translateX('+off+'px)'; return; }
+      const n=[dx/L,dy/L], m=[(G[0]+P[0])/2,(G[1]+P[1])/2];
+      const fixed=clipHalf(rect,m,n,false), folded=clipHalf(rect,m,n,true);
+      t.style.transform='translateX('+off+'px)';
+      t.style.clipPath=poly(fixed.map(p=>ap(Phi,p)));
+      const md=m[0]*n[0]+m[1]*n[1];
+      const R=M(1-2*n[0]*n[0],-2*n[0]*n[1],-2*n[0]*n[1],1-2*n[1]*n[1],2*md*n[0],2*md*n[1]);
+      const A=mul(M(1,0,0,1,off,0),mul(Phi,mul(R,Psi)));
+      const b=pg[B]; if(b){ flapwrap.appendChild(b); b.classList.add('on'); b.style.transform=css(A); b.style.clipPath=poly(folded.map(p=>ap(Psi,p))); }
+    }
+    const pages = narrow ? [side==='L'?2*f:2*f+1] : (f===0?[1]:f===N?[12]:[2*f,2*f+1]);
+    void (pages.length>1?'Pages '+pages.join('–'):'Page '+pages[0])+' of 12';
+    void busy || f===0 && side!=='L';
+    void busy || f===N;
+    if(!fl) for(const n in pg){ const on=pg[n].classList.contains('on'); pg[n].setAttribute('aria-hidden', on?'false':'true'); pg[n].inert=!on; }
+  }
+
+  /* ---------- animation ---------- */
+  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  function animate(dir,G,from,complete,arc,done){
+    busy=true;
+    const to = complete ? [-G[0],G[1]] : G.slice();
+    const dur = reduce ? 1 : (arc?650:380);
+    const lift = arc ? (G[1]-H/2)*0.45 : 0;
+    const t0=performance.now();
+    function step(now){
+      const t=Math.min(1,(now-t0)/dur), e=ease(t);
+      const P=[from[0]+(to[0]-from[0])*e, from[1]+(to[1]-from[1])*e - lift*Math.sin(Math.PI*e)];
+      render({dir,G,P});
+      if(t<1) requestAnimationFrame(step); else { busy=false; done&&done(); }
+    }
+    requestAnimationFrame(step);
+  }
+  function finish(dir){ if(dir>0){ f++; if(narrow) side='L'; } else { f--; if(narrow) side='R'; } if(narrow){ book.classList.add('nomove'); render(null); requestAnimationFrame(()=>book.classList.remove('nomove')); } else { book.classList.remove('nomove'); render(null); } }
+  function flipFrom(dir,G){ if(busy) return; if(dir>0&&f>=N) return; if(dir<0&&f<=0) return;
+    book.classList.add('nomove'); animate(dir,G,G,true,true,()=>finish(dir)); }
+  function slide(to){ if(busy) return; side=to; render(null); }
+
+  function next(){ if(narrow&&side==='L'&&f<N) return slide('R'); flipFrom(1,[W*0.98,H*0.86]); }
+  function prev(){ if(narrow&&side==='R'&&f>0) return slide('L'); flipFrom(-1,[W*0.98,H*0.86]); }
+  document.addEventListener('keydown',e=>{ if(e.target.tagName==='TEXTAREA') return; if(e.key==='ArrowRight'){next();e.preventDefault()} if(e.key==='ArrowLeft'){prev();e.preventDefault()} });
+
+  /* ---------- pointer: grab, drag, click ---------- */
+  function frameFor(e){ const r=book.getBoundingClientRect(); const bx=e.clientX-r.left, by=e.clientY-r.top; return {bx,by}; }
+  stage.addEventListener('pointerdown',e=>{
+    if(busy||e.button>0||e.target.closest('textarea,button,.notelist,.compose')) return;
+    const pe=e.target.closest('.page.on'); if(!pe) return;
+    const {bx,by}=frameFor(e); const onRight = bx>=W;
+    const dir = onRight?1:-1;
+    if(dir>0&&f>=N) return; if(dir<0&&f<=0) return;
+    const G=[onRight?bx-W:W-bx, Math.max(0,Math.min(H,by))];
+    drag={dir,G,P:G.slice(),moved:false,id:e.pointerId,onRight};
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id) return;
+    const {bx,by}=frameFor(e); const P=[drag.dir>0?bx-W:W-bx, by];
+    if(!drag.moved && Math.hypot(P[0]-drag.G[0],P[1]-drag.G[1])<6) return;
+    if(!drag.moved){ drag.moved=true; book.classList.add('nomove'); }
+    drag.P=P; render({dir:drag.dir,G:drag.G,P});
+  });
+  function release(e){
+    if(!drag||e.pointerId!==drag.id) return; const d=drag; drag=null;
+    if(!d.moved){
+      if(narrow){ const r=stage.getBoundingClientRect(), right=e.clientX>r.left+r.width/2;
+        if(side==='L'&&right&&f<N) return slide('R');
+        if(side==='R'&&!right&&f>0) return slide('L'); }
+      return flipFrom(d.dir,d.G);
+    }
+    const P=constrain(d.G,d.P), complete = P[0] < d.G[0]*0.5;
+    animate(d.dir,d.G,P,complete,false,()=>{ if(complete) finish(d.dir); else { render(null); book.classList.remove('nomove'); } });
+  }
+  stage.addEventListener('pointerup',release);
+  stage.addEventListener('pointercancel',release);
+
+  /* ---------- notes (shared) ---------- */
+  const ta=document.getElementById('notes'), saved=document.getElementById('saved'), list=document.getElementById('notelist'),
+        form=document.getElementById('compose'), post=document.getElementById('post'), count=document.getElementById('count');
+  const KEY='passbook-notes'; let db=null, user=null, uid=null, touched=false, prefilled=false, lastDocs=[], writing=false;
+  ta.addEventListener('input',()=>{ touched=true; saved.textContent=''; });
+  function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+  async function paint(){
+    const docs=lastDocs.filter(d=>{ const t=d.data()&&d.data().text; return typeof t==='string'&&t.trim(); });
+    const ids=docs.map(d=>d.id); let ps={};
+    if(user&&ids.length){ try{ ps=await user.profiles(ids); }catch(e){} }
+    list.replaceChildren();
+    if(!docs.length){ list.appendChild(el('li','empty','No notes yet. Be the first to write where you went.')); }
+    for(const d of docs){ const li=el('li'); const p=ps[d.id];
+      li.appendChild(el('span','who', d.id===uid ? 'You' : ((p&&p.name)||'Someone')));
+      li.appendChild(el('span','txt', String(d.data().text).slice(0,600))); list.appendChild(li); }
+    count.textContent = docs.length ? docs.length+(docs.length===1?' note':' notes') : '';
+  }
+  function localMode(){
+    list.replaceChildren(el('li','empty','Shared notes are not available here. Your note is kept in this browser only.'));
+    try{ const v=localStorage.getItem(KEY); if(v) ta.value=v; }catch(e){}
+    form.addEventListener('submit',e=>{ e.preventDefault(); try{ localStorage.setItem(KEY,ta.value); saved.textContent='Saved in this browser'; }catch(err){ saved.textContent='Could not save'; } });
+  }
+  (async function(){
+    try{ db = window.claude ? await window.claude.use('db') : null; user = window.claude ? await window.claude.use('user') : null; }catch(e){ db=null; }
+    if(!db){ localMode(); return; }
+    uid = user ? await user.id() : null;
+    if(!uid){ form.hidden=true; }
+    db.collection('notes').orderBy('updatedAt','desc').limit(200).onSnapshot(snap=>{
+      lastDocs=snap.docs;
+      if(uid&&!prefilled&&!touched){ const mine=snap.docs.find(d=>d.id===uid); if(mine&&mine.data()) ta.value=String(mine.data().text||''); prefilled=true; }
+      paint();
+    },()=>{ list.replaceChildren(el('li','empty','Notes could not be loaded right now.')); });
+    form.addEventListener('submit',async e=>{
+      e.preventDefault(); if(writing||!uid) return; writing=true; post.disabled=true; saved.textContent='Saving…';
+      const text=ta.value.trim().slice(0,600), ref=db.doc('notes/'+uid);
+      try{ if(text) await ref.set({text, updatedAt: Date.now()}); else await ref.delete(); touched=false; saved.textContent = text ? 'Saved for everyone' : 'Note removed'; }
+      catch(err){ if(err&&err.code==='invalid_argument'){ form.hidden=true; list.insertBefore(el('li','empty','You can read the notes, but this link does not let you add one.'),list.firstChild); } else saved.textContent='Could not save. Try again.'; }
+      finally{ writing=false; post.disabled=false; }
+    });
+  })();
+
+  window.addEventListener('resize',()=>{ if(!busy&&!drag) layout(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(layout);
+  layout();
+})();
+</script>
+
+</body>
+</html>
